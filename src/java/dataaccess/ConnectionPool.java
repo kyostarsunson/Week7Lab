@@ -6,9 +6,10 @@
 package dataaccess;
 
 import java.sql.*;
-import javax.sql.DataSource;
+import java.util.LinkedList;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 /**
  *
@@ -18,17 +19,20 @@ public class ConnectionPool {
 
     private static ConnectionPool pool = null;
     private static DataSource dataSource = null;
+    private static final LinkedList<Connection> CONNECTIONS_LIST = new LinkedList<Connection>();
 
     private ConnectionPool() {
         try {
             InitialContext ic = new InitialContext();
+            dataSource = (DataSource) ic.lookup("java:/comp/env/jdbc/userdb");
 
-            dataSource = (DataSource) ic.lookup("java:/comp/env/jdbc/app0");
+            for (int i = 0; i < 4; i++) {
+                CONNECTIONS_LIST.add(dataSource.getConnection());
+            }
 
-        } catch (Exception e) {
+        } catch (SQLException | NamingException e) {
             System.err.println(e);
         }
-
     }
 
     ;
@@ -41,21 +45,18 @@ public class ConnectionPool {
     }
 
     public Connection getConnection() {
-        try {
-            return dataSource.getConnection();
-        } catch (Exception e) {
-            System.out.println(e);
-            return null;
+        Connection connection = null;
+
+        if (CONNECTIONS_LIST.isEmpty()) {
+        } else {
+            connection = CONNECTIONS_LIST.removeFirst();
         }
+        return connection;
     }
 
     public void freeConnection(Connection c) {
 
-        try {
-            c.close();
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
+        CONNECTIONS_LIST.add(c);
 
     }
 

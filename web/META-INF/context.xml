@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/Week7Lab">
+<Context path="/">
 
-<Resource name="jdbc/app" auth="Container" driverClassName="com.mysql.jdbc.Driver"
-    url="jdbc:mysql://localhost:3006/userdb" username="root" password="password"
-    maxActive="100" maxIdle="30" maxWait="10000" 
-    removeAbandoneTimeout="60" type="javax.sql.DataSource" />
+    <Resource name="jdbc/userdb" auth="Container" driverClassName="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://localhost:3007/userdb" username="root" password="songlie1"
+              maxActive="100" maxIdle="30" maxWait="10000"
+              removeAbandoneTimeout="60" type="javax.sql.DataSource" />
 
 </Context>

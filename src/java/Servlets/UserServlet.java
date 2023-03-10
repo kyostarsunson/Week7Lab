@@ -5,6 +5,7 @@
  */
 package Servlets;
 
+import dataaccess.RoleDB;
 import dataaccess.UserDB;
 import java.io.IOException;
 import java.util.List;
@@ -12,7 +13,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import models.Role;
 import models.User;
 
 /**
@@ -24,26 +25,22 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //System.err.println("I am hereffffffffffffffffffffffffffffffffffffff");
-
-        HttpSession mySession = request.getSession();
 
         UserDB myUserDb = new UserDB();
-        //String emailString = (String) mySession.getAttribute("email");
         List<User> users = myUserDb.getAll();
-
+        RoleDB myRoleDb = new RoleDB();
+        List<Role> roles = myRoleDb.getAll();
         request.setAttribute("users", users);
+        request.setAttribute("roles", roles);
 
-        ///
+        System.out.println("Servlets.UserServlet.doGet():roles=" + roles.toString());
+
         String email = request.getParameter("email");
         if (email != null) {
-
             email = email.replaceAll(" ", "+");
             email = email.replaceAll("'", "");
-            System.out.println("Servlets.UserServlet.getParameter(),email=" + email);
             User user = myUserDb.getByEmail(email);
 
-            System.out.println("Servlets.UserServlet.doGet(),user=" + user);
             request.setAttribute("selectuser", user);
         }
 
@@ -61,29 +58,71 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String actionString = request.getParameter("action");
+        UserDB myUserDB = new UserDB();
 
-//        HttpSession mySession = request.getSession();
-//
-//        String email = (String) mySession.getAttribute("email");
-//
-//        String actionString = request.getParameter("action");
-        //UserDB myUserDb = new UserDB();
-        //String userString = myUserDb.getAll().toString();
-        //request.setAttribute("users", myUserDb.getAll());
-        //doGet(request, response);
-        //getServletContext().getRequestDispatcher("/WEB-INF/users.jsp").forward(request, response);
-        //System.err.println("Users info: =" + userString);
-//        try {
-//
-//            switch (actionString) {
-//                case "add": {
-//
-//                }
-//                ;
-//            };
-//
-//        } catch (Exception e) {
-//        }
+        // if add
+        if (actionString.equals("insert")) {
+
+            try {
+
+                String strValue = request.getParameter("roleInput");
+                User user = new User(request.getParameter("emailInput"), request.getParameter("firstInput"), request.getParameter("lastInput"), request.getParameter("passwordInput"), request.getParameter("roleInput"));
+                myUserDB.add(user);
+                request.setAttribute("message", "added");
+
+            } catch (Exception e) {
+                request.setAttribute("message", "error");
+            }
+            //System.out.println("in Servlets.UserServlet.doPost()," + "email=" + email);
+        }
+
+        // if delete
+        if (actionString.equals("delete")) {
+            String email = request.getParameter("email");
+            email = email.replaceAll(" ", "+");
+            email = email.replaceAll("'", "");
+
+            try {
+                User user = myUserDB.getByEmail(email);
+                myUserDB.del(user);
+                request.setAttribute("message", "deleted");
+
+            } catch (Exception e) {
+                request.setAttribute("message", "error");
+            }
+            //System.out.println("in Servlets.UserServlet.doPost()," + "email=" + email);
+        }
+        // if update
+        if (actionString.equals("update")) {
+            String email = request.getParameter("email");
+            email = email.replaceAll(" ", "+");
+            email = email.replaceAll("'", "");
+
+            try {
+                myUserDB.updateByEmail(email, request.getParameter("firstInput"), request.getParameter("lastInput"), request.getParameter("passwordInput"), request.getParameter("emailInput"));
+                request.setAttribute("message", "updated");
+            } catch (Exception e) {
+
+                request.setAttribute("message", "error");
+            }
+
+        }
+
+        // after db action
+        try {
+            UserDB myUserDb = new UserDB();
+            List<User> users = myUserDb.getAll();
+            RoleDB myRoleDb = new RoleDB();
+            List<Role> roles = myRoleDb.getAll();
+            request.setAttribute("users", users);
+            request.setAttribute("roles", roles);
+
+        } catch (Exception e) {
+            request.setAttribute("message", "error");
+        }
+
+        getServletContext().getRequestDispatcher("/WEB-INF/users.jsp").forward(request, response);
     }
 
 }
